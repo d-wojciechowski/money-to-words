@@ -66,80 +66,53 @@ var relation = map[string][]string{
 	"cztery": pluralSimple,
 }
 
-type pair struct {
-	k int
-	v string
-}
-
 func ConvertToWordRepresentation(money string) (string, error) {
 	if money == "0" {
 		return "zero", nil
 	}
 
 	triplets := toTriplets(money)
-	amountChan := make(chan *pair)
-	defer close(amountChan)
+	outputTriplet := make([]string, 0, len(triplets))
+	for i, triplet := range triplets {
+		amount, _ := tripletToAmount(triplet)
 
-	for tripletOrder, triplet := range triplets {
-		go calculateAndAddTripletToChan(triplet, tripletOrder, amountChan)
+		if relation[amount] != nil {
+			amount = fmt.Sprintf("%s %s", amount, relation[amount][i])
+		} else if amount != "" {
+			amount = fmt.Sprintf("%s %s", amount, pluralUpper[i])
+		}
+		outputTriplet = append(outputTriplet, amount)
 	}
 
-	outputTriplet := consumeTripletsFromChannel(len(triplets), amountChan)
+	for i, j := 0, len(outputTriplet)-1; i < j; i, j = i+1, j-1 {
+		outputTriplet[i], outputTriplet[j] = outputTriplet[j], outputTriplet[i]
+	}
+
 	return strings.TrimSpace(strings.Join(outputTriplet, " ")), nil
 }
 
-func consumeTripletsFromChannel(expectedSize int, amountChan chan *pair) []string {
-	var p *pair
-	lastIdx := expectedSize - 1
-	outputTriplet := make([]string, expectedSize)
-	for i := 0; i < expectedSize; i++ {
-		p = <-amountChan
-		outputTriplet[lastIdx-p.k] = p.v
-	}
-	return outputTriplet
-}
-
-func calculateAndAddTripletToChan(triplet string, tripletOrder int, amountChan chan *pair) {
-	amount, _ := getTripletWithSuffix(triplet, tripletOrder)
-	amountChan <- &pair{
-		v: amount,
-		k: tripletOrder,
-	}
-}
-
-func getTripletWithSuffix(triplet string, tripletOrder int) (string, error) {
-	amount, _ := tripletToAmount(triplet)
-
-	if relation[amount] != nil {
-		amount = fmt.Sprintf("%s %s", amount, relation[amount][tripletOrder])
-	} else if amount != "" {
-		amount = fmt.Sprintf("%s %s", amount, pluralUpper[tripletOrder])
-	}
-	return amount, nil
-}
-
 func tripletToAmount(triplet string) (string, error) {
-	convertedTriplet := make([]string, 0, 3)
+	tripplet := make([]string, 0, 3)
 	var tempTriplet = triplet
 	if len(tempTriplet) == 3 {
 		if tempTriplet[0] != '0' {
-			convertedTriplet = append(convertedTriplet, hundredsMap[string(tempTriplet[0])])
+			tripplet = append(tripplet, hundredsMap[string(tempTriplet[0])])
 		}
 		tempTriplet = tempTriplet[1:]
 	}
 	if len(tempTriplet) == 2 {
 		if tempTriplet[0] == '1' {
-			convertedTriplet = append(convertedTriplet, tenthsMap[tempTriplet])
-			return strings.Join(convertedTriplet, " "), nil
+			tripplet = append(tripplet, tenthsMap[tempTriplet])
+			return strings.Join(tripplet, " "), nil
 		} else if tempTriplet[0] != '0' {
-			convertedTriplet = append(convertedTriplet, upperTenthsMap[string(tempTriplet[0])])
+			tripplet = append(tripplet, upperTenthsMap[string(tempTriplet[0])])
 		}
 		tempTriplet = tempTriplet[1:]
 	}
 	if len(tempTriplet) == 1 && tempTriplet[0] != '0' {
-		convertedTriplet = append(convertedTriplet, unitMap[string(tempTriplet[0])])
+		tripplet = append(tripplet, unitMap[string(tempTriplet[0])])
 	}
-	return strings.Join(convertedTriplet, " "), nil
+	return strings.Join(tripplet, " "), nil
 }
 
 func toTriplets(money string) []string {
