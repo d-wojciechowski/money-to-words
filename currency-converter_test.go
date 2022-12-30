@@ -164,6 +164,47 @@ func TestPluralMoreThanTriples(t *testing.T) {
 	}
 }
 
+func TestCleanupOfInputForLoop(t *testing.T) {
+	expectedResult := map[string]string{
+		"200.00":            "200.00",
+		"200,00 ":           "200,00",
+		"200 , 00":          "200,00",
+		"200 , 002":         "200,00",
+		"A2C0D0E , G0F0H2I": "200,00",
+	}
+
+	for key, value := range expectedResult {
+		result, err := sanitizeAndSplit(key)
+		if err != nil {
+			t.Errorf("Input cleanup failed when for implementation chosen, error: %v raised", err.Error())
+		}
+		if value != result {
+			t.Errorf("Input cleanup failed when for implementation chosen. Expected was: [%v], got: [%v].", value, result)
+		}
+	}
+}
+
+func TestCleanupOfInputRegex(t *testing.T) {
+	expectedResult := map[string]string{
+		"200.00":             "200.00",
+		"200,00 ":            "200,00",
+		"200 , 00":           "200,00",
+		"200 , 002":          "200,00",
+		"A2C0D0E , G0F0H2I":  "200,00",
+		"A2C0D0E , G0F0,H2I": "200,00",
+	}
+
+	for key, value := range expectedResult {
+		result, err := sanitizeAndSplit(key)
+		if err != nil {
+			t.Errorf("Input cleanup failed when regex implementation chosen, error: %v raised", err.Error())
+		}
+		if value != result {
+			t.Errorf("Input cleanup failed when regex implementation chosen. Expected was: [%v], got: [%v].", value, result)
+		}
+	}
+}
+
 func BenchmarkPluralMoreThanTriples(b *testing.B) {
 	input := []string{
 		"1001", "1101", "2101", "3101", "4101", "5101", "9101", "1001001", "2001101", "3002101", "4003101", "5004101",
@@ -175,6 +216,22 @@ func BenchmarkPluralMoreThanTriples(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		for _, key := range input {
 			ConvertToWordRepresentation(key)
+		}
+	}
+}
+
+func BenchmarkSanitizeInputForLoop(b *testing.B) {
+	input := []string{
+		"200.00",
+		"200,00",
+		"200 , 00",
+		"200 , 002",
+		"A2C0D0E , G0F0H2I",
+	}
+
+	for i := 0; i < b.N; i++ {
+		for _, key := range input {
+			sanitizeAndSplit(key)
 		}
 	}
 }

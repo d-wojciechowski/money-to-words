@@ -3,6 +3,7 @@ package main
 import (
 	"math"
 	"strings"
+	"unicode"
 )
 
 var unitMap = map[string]string{
@@ -54,9 +55,9 @@ var hundredsMap = map[string]string{
 	"9": "dziewięćset",
 }
 
-var singular = []string{" ", "tysiąc ", "milion ", "miliard ", "bilion "}
-var pluralSimple = []string{"", "tysiące ", "miliony ", "miliardy ", "biliony "}
-var pluralUpper = []string{"", "tysięcy ", "milionów ", "miliardów ", "bilionów "}
+var singular = []string{" ", "tysiąc ", "milion ", "miliard ", "bilion ", "biliard ", "trylion ", "tryliard ", "kwadrylion ", "kwadryliard ", "kwintylion ", "kwintyliard "}
+var pluralSimple = []string{" ", "tysiące ", "miliony ", "miliardy ", "biliony ", "biliardy ", "tryliony ", "tryliardy ", "kwadryliony ", "kwadryliardy ", "kwintyliony ", "kwintyliardy "}
+var pluralUpper = []string{" ", "tysięcy ", "milionów ", "miliardów ", "bilionów ", "biliardów ", "trylionów ", "tryliardów ", "kwadrylionów ", "kwadryliardów ", "kwintylionów ", "kwintyliardów "}
 
 var relation = map[string][]string{
 	"jeden ":  singular,
@@ -66,12 +67,46 @@ var relation = map[string][]string{
 }
 
 func ConvertToWordRepresentation(money string) (string, error) {
-	sb := strings.Builder{}
-
 	if money == "0" {
 		return "zero", nil
 	}
 
+	sb := &strings.Builder{}
+	sanitizedMoney, _ := sanitizeAndSplit(money)
+	convertIntegerPart(sanitizedMoney, sb)
+
+	return strings.TrimSpace(sb.String()), nil
+}
+
+func sanitizeAndSplit(input string) (string, error) {
+	//allowed format is : [0-9]+[\.,]?[0-9]{0,2}
+	//allowed characters are : [0-9\.,]
+	sb := strings.Builder{}
+	shouldStopOnNextComa := false
+	digitsAfterComa := 0
+	for _, r := range input {
+		if digitsAfterComa == 2 {
+			return sb.String(), nil
+		}
+		if unicode.IsDigit(r) {
+			if shouldStopOnNextComa {
+				digitsAfterComa++
+			}
+			sb.WriteRune(r)
+			continue
+		}
+		if r == ',' || r == '.' {
+			if shouldStopOnNextComa {
+				return sb.String(), nil
+			}
+			sb.WriteRune(r)
+			shouldStopOnNextComa = true
+		}
+	}
+	return sb.String(), nil
+}
+
+func convertIntegerPart(money string, sb *strings.Builder) {
 	triplets := toTriplets(money)
 	outputTriplet := make([]string, 0, len(triplets))
 	for i, triplet := range triplets {
@@ -88,8 +123,6 @@ func ConvertToWordRepresentation(money string) (string, error) {
 	for i := len(outputTriplet); i > 0; i-- {
 		sb.WriteString(outputTriplet[i-1])
 	}
-
-	return strings.TrimSpace(sb.String()), nil
 }
 
 func tripletToAmount(triplet string) (string, error) {
