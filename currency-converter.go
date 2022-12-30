@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math"
 	"strings"
 )
@@ -54,20 +55,18 @@ var hundredsMap = map[string]string{
 	"9": "dziewięćset",
 }
 
-var singular = []string{" ", "tysiąc ", "milion ", "miliard ", "bilion "}
-var pluralSimple = []string{"", "tysiące ", "miliony ", "miliardy ", "biliony "}
-var pluralUpper = []string{"", "tysięcy ", "milionów ", "miliardów ", "bilionów "}
+var singular = []string{"", "tysiąc", "milion", "miliard", "bilion", "biliard", "trylion", "tryliard", "kwadrylion", "kwadryliard", "kwintylion", "kwintyliard"}
+var pluralSimple = []string{"", "tysiące", "miliony", "miliardy", "biliony", "biliardy", "tryliony", "tryliardy", "kwadryliony", "kwadryliardy", "kwintyliony", "kwintyliardy"}
+var pluralUpper = []string{"", "tysięcy", "milionów", "miliardów", "bilionów", "biliardów", "trylionów", "tryliardów", "kwadrylionów", "kwadryliardów", "kwintylionów", "kwintyliardów"}
 
 var relation = map[string][]string{
-	"jeden ":  singular,
-	"dwa ":    pluralSimple,
-	"trzy ":   pluralSimple,
-	"cztery ": pluralSimple,
+	"jeden":  singular,
+	"dwa":    pluralSimple,
+	"trzy":   pluralSimple,
+	"cztery": pluralSimple,
 }
 
 func ConvertToWordRepresentation(money string) (string, error) {
-	sb := strings.Builder{}
-
 	if money == "0" {
 		return "zero", nil
 	}
@@ -78,42 +77,42 @@ func ConvertToWordRepresentation(money string) (string, error) {
 		amount, _ := tripletToAmount(triplet)
 
 		if relation[amount] != nil {
-			amount = amount + relation[amount][i]
+			amount = fmt.Sprintf("%s %s", amount, relation[amount][i])
 		} else if amount != "" {
-			amount = amount + pluralUpper[i]
+			amount = fmt.Sprintf("%s %s", amount, pluralUpper[i])
 		}
 		outputTriplet = append(outputTriplet, amount)
 	}
 
-	for i := len(outputTriplet); i > 0; i-- {
-		sb.WriteString(outputTriplet[i-1])
+	for i, j := 0, len(outputTriplet)-1; i < j; i, j = i+1, j-1 {
+		outputTriplet[i], outputTriplet[j] = outputTriplet[j], outputTriplet[i]
 	}
 
-	return strings.TrimSpace(sb.String()), nil
+	return strings.TrimSpace(strings.Join(outputTriplet, " ")), nil
 }
 
 func tripletToAmount(triplet string) (string, error) {
-	sb := strings.Builder{}
+	tripplet := make([]string, 0, 3)
 	var tempTriplet = triplet
 	if len(tempTriplet) == 3 {
 		if tempTriplet[0] != '0' {
-			sb.WriteString(hundredsMap[string(tempTriplet[0])] + " ")
+			tripplet = append(tripplet, hundredsMap[string(tempTriplet[0])])
 		}
 		tempTriplet = tempTriplet[1:]
 	}
 	if len(tempTriplet) == 2 {
 		if tempTriplet[0] == '1' {
-			sb.WriteString(tenthsMap[tempTriplet] + " ")
-			return sb.String(), nil
+			tripplet = append(tripplet, tenthsMap[tempTriplet])
+			return strings.Join(tripplet, " "), nil
 		} else if tempTriplet[0] != '0' {
-			sb.WriteString(upperTenthsMap[string(tempTriplet[0])] + " ")
+			tripplet = append(tripplet, upperTenthsMap[string(tempTriplet[0])])
 		}
 		tempTriplet = tempTriplet[1:]
 	}
 	if len(tempTriplet) == 1 && tempTriplet[0] != '0' {
-		sb.WriteString(unitMap[string(tempTriplet[0])] + " ")
+		tripplet = append(tripplet, unitMap[string(tempTriplet[0])])
 	}
-	return sb.String(), nil
+	return strings.Join(tripplet, " "), nil
 }
 
 func toTriplets(money string) []string {
