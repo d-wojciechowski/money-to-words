@@ -9,20 +9,26 @@ import (
 
 func ConvertToWordRepresentation(money string) (string, error) {
 	if money == "0" {
-		return "zero", nil
+		return "zero złotych", nil
 	}
 
-	sb := &strings.Builder{}
+	sb := strings.Builder{}
 	sanitizedMoney, _ := utils.SanitizeAsMoney(money)
 	splitedMoney := utils.Split(sanitizedMoney, []rune{',', '.'})
 	if splitedMoney[0] != "" {
-		convertIntegerPart(splitedMoney[0], sb)
+		integerPart, _ := convertIntegerPart(splitedMoney[0])
+		sb.WriteString(integerPart)
+	}
+	if len(splitedMoney) > 1 && splitedMoney[1] != "" {
+		decimalPart, _ := convertDecimalPart(splitedMoney[1])
+		sb.WriteString(decimalPart)
 	}
 
 	return strings.TrimSpace(sb.String()), nil
 }
 
-func convertIntegerPart(money string, sb *strings.Builder) {
+func convertIntegerPart(money string) (string, error) {
+	sb := &strings.Builder{}
 	triplets := splitToTriplets(money)
 	outputTriplet := make([]string, 0, len(triplets))
 	for i, triplet := range triplets {
@@ -39,6 +45,59 @@ func convertIntegerPart(money string, sb *strings.Builder) {
 	for i := len(outputTriplet); i > 0; i-- {
 		sb.WriteString(outputTriplet[i-1])
 	}
+	result := sb.String()
+	suffix := getZlotyPrefix(result)
+	return result + suffix, nil
+}
+
+func getZlotyPrefix(result string) string {
+	if result == "" {
+		return "zero złotych "
+	}
+	for key, value := range dict.IntegerZlotySuffix {
+		if strings.HasSuffix(result, key) {
+			return value
+		}
+	}
+	return "złotych "
+}
+
+func convertDecimalPart(money string) (string, error) {
+	sb := &strings.Builder{}
+	triplets := splitToTriplets(money)
+	outputTriplet := make([]string, 0, len(triplets))
+	for i, triplet := range triplets {
+		amount, _ := tripletToAmount(triplet)
+
+		if dict.Relation[amount] != nil {
+			amount = amount + dict.Relation[amount][i]
+		} else if amount != "" {
+			amount = amount + dict.PluralUpper[i]
+		}
+		outputTriplet = append(outputTriplet, amount)
+	}
+
+	for i := len(outputTriplet); i > 0; i-- {
+		sb.WriteString(outputTriplet[i-1])
+	}
+	result := sb.String()
+	suffix := getGroszyPrefix(result)
+	return result + suffix, nil
+}
+
+func getGroszyPrefix(result string) string {
+	if result == "" {
+		return "zero groszy "
+	}
+	if result == "jeden " {
+		return "grosz "
+	}
+	for _, value := range dict.IntegerGroszSuffix {
+		if strings.HasSuffix(result, value) {
+			return "grosze "
+		}
+	}
+	return "groszy "
 }
 
 func tripletToAmount(triplet string) (string, error) {

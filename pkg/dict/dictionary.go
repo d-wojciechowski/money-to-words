@@ -49,13 +49,26 @@ var HundredsMap = map[string]string{
 	"9": "dziewięćset",
 }
 
-var Singular = []string{" ", "tysiąc ", "milion ", "miliard ", "bilion ", "biliard ", "trylion ", "tryliard ", "kwadrylion ", "kwadryliard ", "kwintylion ", "kwintyliard "}
-var PluralSimple = []string{" ", "tysiące ", "miliony ", "miliardy ", "biliony ", "biliardy ", "tryliony ", "tryliardy ", "kwadryliony ", "kwadryliardy ", "kwintyliony ", "kwintyliardy "}
-var PluralUpper = []string{" ", "tysięcy ", "milionów ", "miliardów ", "bilionów ", "biliardów ", "trylionów ", "tryliardów ", "kwadrylionów ", "kwadryliardów ", "kwintylionów ", "kwintyliardów "}
+var Singular = []string{"", "tysiąc ", "milion ", "miliard ", "bilion ", "biliard ", "trylion ", "tryliard ", "kwadrylion ", "kwadryliard ", "kwintylion ", "kwintyliard "}
+var PluralSimple = []string{"", "tysiące ", "miliony ", "miliardy ", "biliony ", "biliardy ", "tryliony ", "tryliardy ", "kwadryliony ", "kwadryliardy ", "kwintyliony ", "kwintyliardy "}
+var PluralUpper = []string{"", "tysięcy ", "milionów ", "miliardów ", "bilionów ", "biliardów ", "trylionów ", "tryliardów ", "kwadrylionów ", "kwadryliardów ", "kwintylionów ", "kwintyliardów "}
 
 var Relation = map[string][]string{
 	"jeden ":  Singular,
 	"dwa ":    PluralSimple,
 	"trzy ":   PluralSimple,
 	"cztery ": PluralSimple,
+}
+
+var IntegerZlotySuffix = map[string]string{
+	"jeden ":  "złoty ",
+	"dwa ":    "złote ",
+	"trzy ":   "złote ",
+	"cztery ": "złote ",
+}
+
+var IntegerGroszSuffix = []string{
+	"dwa ",
+	"trzy ",
+	"cztery ",
 }
