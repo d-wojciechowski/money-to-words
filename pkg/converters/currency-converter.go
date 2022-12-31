@@ -1,4 +1,4 @@
-package main
+package converters
 
 import (
 	"ammount-in-words/pkg/dict"
