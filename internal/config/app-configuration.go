@@ -16,12 +16,12 @@ type appConfig struct {
 	LogOutput LogType
 }
 
-var AppConfig appConfig
+var AppConfig = getConfiguration()
 
-func InitConfiguration() {
+func getConfiguration() *appConfig {
 	_ = godotenv.Load() //todo consider panic or other halt of app on dotEnv fail
 
-	AppConfig = appConfig{
+	return &appConfig{
 		LogLevel:  "debug",
 		LogOutput: Dev,
 	}

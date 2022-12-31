@@ -1,12 +1,10 @@
 package main
 
 import (
-	"ammount-in-words/internal/config"
 	"ammount-in-words/internal/routers"
 )
 
 func init() {
-	config.InitConfiguration()
 	routers.InitRouter()
 }
 
