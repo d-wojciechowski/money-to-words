@@ -2,7 +2,6 @@ package v1
 
 import (
 	"ammount-in-words/pkg/converters"
-	"ammount-in-words/pkg/logger"
 	"ammount-in-words/pkg/web"
 	"errors"
 	"github.com/gin-gonic/gin"
@@ -10,13 +9,19 @@ import (
 	"net/http"
 )
 
-var log *zap.SugaredLogger
-
-func init() {
-	log = logger.CreateLogger().Sugar()
+type converterController struct {
+	logger *zap.SugaredLogger
 }
 
-func ConvertToPLN(c *gin.Context) {
+type ConverterController interface {
+	ConvertToPLN(c *gin.Context)
+}
+
+func NewConverterController(logger *zap.SugaredLogger) *converterController {
+	return &converterController{logger: logger}
+}
+
+func (cc *converterController) ConvertToPLN(c *gin.Context) {
 	money := c.Param("money")
 
 	result, err := converters.ConvertToWordRepresentation(money)
@@ -29,7 +34,6 @@ func ConvertToPLN(c *gin.Context) {
 		})
 		c.Error(errors.New(err.Error()))
 	}
-	log.Infow("Correct response", "input", money, "output", result)
-	defer log.Sync()
+	cc.logger.Infow("Correct response", "input", money, "output", result)
 	c.JSON(http.StatusOK, result)
 }

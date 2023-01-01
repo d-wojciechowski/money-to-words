@@ -1,28 +1,56 @@
 package config
 
 import (
-	"github.com/joho/godotenv"
+	_ "github.com/joho/godotenv/autoload"
+	"go.uber.org/zap/zapcore"
+	"os"
 )
 
-type LogType int
+type LogProfile string
 
 const (
-	Prod int = 0
-	Dev      = 1
+	Prod LogProfile = "prod"
+	Dev             = "dev"
+)
+
+type envFileKey string
+
+const (
+	LOG_PROFILE envFileKey = "LOG_PROFILE"
+	LOG_PATH               = "LOG_PATH"
+	LOG_LEVEL              = "LOG_LEVEL"
 )
 
 type appConfig struct {
-	LogLevel  string
-	LogOutput LogType
+	LogLevel   zapcore.Level
+	LogProfile LogProfile
+	LogPath    string
 }
 
 var AppConfig = getConfiguration()
 
 func getConfiguration() *appConfig {
-	_ = godotenv.Load() //todo consider panic or other halt of app on dotEnv fail
 
 	return &appConfig{
-		LogLevel:  "debug",
-		LogOutput: Dev,
+		LogLevel:   getLogLevel(),
+		LogProfile: LogProfile(getEnvOrDefault(LOG_PROFILE, Dev)),
+		LogPath:    getEnvOrDefault(LOG_PATH, "./app.log"),
 	}
+}
+
+func getLogLevel() zapcore.Level {
+	logLevel := getEnvOrDefault(LOG_LEVEL, "info")
+	level, err := zapcore.ParseLevel(logLevel)
+	if err != nil {
+		panic("Could not initialize app configuration. LogLevel is invalid! Provided level: " + logLevel)
+	}
+	return level
+}
+
+func getEnvOrDefault(key envFileKey, def string) string {
+	envVal := os.Getenv(string(key))
+	if envVal == "" {
+		return def
+	}
+	return envVal
 }

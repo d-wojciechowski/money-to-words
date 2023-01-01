@@ -1,6 +1,7 @@
 run:
 	go run main.go
 fmt:
+	go mod tidy
 	go fmt ./...
 bench:
 	go test -v -bench . -run=^# ./...
@@ -10,3 +11,5 @@ bench5:
 	go test -v -bench . -count 5 -run=^# ./...
 test:
 	go test -v ./...
+build:
+	go build  -ldflags '-w -s' -a -installsuffix cgo -o app.exe

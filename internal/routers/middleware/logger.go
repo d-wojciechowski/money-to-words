@@ -10,13 +10,12 @@ import (
 // DefaultStructuredLogger logs a gin HTTP request in JSON format. Uses the
 // default logger from rs/zerolog.
 func DefaultStructuredLogger() gin.HandlerFunc {
-	logger := logger.CreateLogger()
-	return StructuredLogger(logger)
+	return StructuredLogger(logger.Logger)
 }
 
 // StructuredLogger logs a gin HTTP request in JSON format. Allows to set the
 // logger for testing purposes.
-func StructuredLogger(logger *zap.Logger) gin.HandlerFunc {
+func StructuredLogger(logger *zap.SugaredLogger) gin.HandlerFunc {
 	return func(c *gin.Context) {
 
 		start := time.Now() // Start timer
@@ -46,8 +45,7 @@ func StructuredLogger(logger *zap.Logger) gin.HandlerFunc {
 		param.Path = path
 
 		// Log using the params
-		logg := logger.Sugar()
-		defer logg.Sync()
+		defer logger.Sync()
 
 		params := []interface{}{
 			"client_id", param.ClientIP,
@@ -59,9 +57,9 @@ func StructuredLogger(logger *zap.Logger) gin.HandlerFunc {
 			"message", param.ErrorMessage}
 
 		if c.Writer.Status() >= 500 {
-			logg.Errorw("", params...)
+			logger.Errorw("", params...)
 		} else {
-			logg.Infow("", params...)
+			logger.Infow("", params...)
 		}
 	}
 }
