@@ -15,10 +15,7 @@ func TestCleanupOfInputForLoop(t *testing.T) {
 	}
 
 	for key, value := range expectedResult {
-		result, err := SanitizeAsMoney(key)
-		if err != nil {
-			t.Errorf("Input cleanup failed when for implementation chosen, error: %v raised", err.Error())
-		}
+		result := SanitizeAsMoney(key)
 		if value != result {
 			t.Errorf("Input cleanup failed when for implementation chosen. Expected was: [%v], got: [%v].", value, result)
 		}
@@ -36,10 +33,7 @@ func TestCleanupOfInputRegex(t *testing.T) {
 	}
 
 	for key, value := range expectedResult {
-		result, err := SanitizeAsMoney(key)
-		if err != nil {
-			t.Errorf("Input cleanup failed when regex implementation chosen, error: %v raised", err.Error())
-		}
+		result := SanitizeAsMoney(key)
 		if value != result {
 			t.Errorf("Input cleanup failed when regex implementation chosen. Expected was: [%v], got: [%v].", value, result)
 		}
@@ -74,7 +68,7 @@ func BenchmarkSanitizeInputForLoop(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		for _, key := range input {
-			_, _ = SanitizeAsMoney(key)
+			_ = SanitizeAsMoney(key)
 		}
 	}
 }

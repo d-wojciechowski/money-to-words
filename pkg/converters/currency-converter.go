@@ -7,32 +7,29 @@ import (
 	"strings"
 )
 
-func ConvertToWordRepresentation(money string) (string, error) {
-	if money == "0" {
+func ConvertToWordRepresentation(input string) (string, error) {
+	if input == "0" {
 		return "zero złotych", nil
 	}
 
 	sb := strings.Builder{}
-	sanitizedMoney, _ := utils.SanitizeAsMoney(money)
-	splitedMoney := utils.Split(sanitizedMoney, []rune{',', '.'})
-	if splitedMoney[0] != "" {
-		integerPart, _ := convertIntegerPart(splitedMoney[0])
-		sb.WriteString(integerPart)
+	splitedMoney := utils.Split(utils.SanitizeAsMoney(input), []rune{',', '.'})
+	if len(splitedMoney) > 0 && splitedMoney[0] != "" {
+		sb.WriteString(convertIntegerPart(splitedMoney[0]))
 	}
 	if len(splitedMoney) > 1 && splitedMoney[1] != "" {
-		decimalPart, _ := convertDecimalPart(splitedMoney[1])
-		sb.WriteString(decimalPart)
+		sb.WriteString(convertDecimalPart(splitedMoney[1]))
 	}
 
 	return strings.TrimSpace(sb.String()), nil
 }
 
-func convertIntegerPart(money string) (string, error) {
+func convertIntegerPart(money string) string {
 	sb := &strings.Builder{}
 	triplets := splitToTriplets(money)
 	outputTriplet := make([]string, 0, len(triplets))
 	for i, triplet := range triplets {
-		amount, _ := tripletToAmount(triplet)
+		amount := tripletToAmount(triplet)
 
 		if dict.Relation[amount] != nil {
 			amount = amount + dict.Relation[amount][i]
@@ -47,7 +44,7 @@ func convertIntegerPart(money string) (string, error) {
 	}
 	result := sb.String()
 	suffix := getZlotyPrefix(result)
-	return result + suffix, nil
+	return result + suffix
 }
 
 func getZlotyPrefix(result string) string {
@@ -62,12 +59,12 @@ func getZlotyPrefix(result string) string {
 	return "złotych "
 }
 
-func convertDecimalPart(money string) (string, error) {
+func convertDecimalPart(money string) string {
 	sb := &strings.Builder{}
 	triplets := splitToTriplets(money)
 	outputTriplet := make([]string, 0, len(triplets))
 	for i, triplet := range triplets {
-		amount, _ := tripletToAmount(triplet)
+		amount := tripletToAmount(triplet)
 
 		if dict.Relation[amount] != nil {
 			amount = amount + dict.Relation[amount][i]
@@ -82,7 +79,7 @@ func convertDecimalPart(money string) (string, error) {
 	}
 	result := sb.String()
 	suffix := getGroszyPrefix(result)
-	return result + suffix, nil
+	return result + suffix
 }
 
 func getGroszyPrefix(result string) string {
@@ -100,7 +97,7 @@ func getGroszyPrefix(result string) string {
 	return "groszy "
 }
 
-func tripletToAmount(triplet string) (string, error) {
+func tripletToAmount(triplet string) string {
 	sb := strings.Builder{}
 	var tempTriplet = triplet
 	if len(tempTriplet) == 3 {
@@ -112,7 +109,7 @@ func tripletToAmount(triplet string) (string, error) {
 	if len(tempTriplet) == 2 {
 		if tempTriplet[0] == '1' {
 			sb.WriteString(dict.TenthsMap[tempTriplet] + " ")
-			return sb.String(), nil
+			return sb.String()
 		} else if tempTriplet[0] != '0' {
 			sb.WriteString(dict.UpperTenthsMap[string(tempTriplet[0])] + " ")
 		}
@@ -121,7 +118,7 @@ func tripletToAmount(triplet string) (string, error) {
 	if len(tempTriplet) == 1 && tempTriplet[0] != '0' {
 		sb.WriteString(dict.UnitMap[string(tempTriplet[0])] + " ")
 	}
-	return sb.String(), nil
+	return sb.String()
 }
 
 func splitToTriplets(money string) []string {

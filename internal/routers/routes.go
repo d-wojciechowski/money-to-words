@@ -10,6 +10,8 @@ import (
 var Router *gin.Engine
 
 func InitRouter() {
+	log := logger.Logger
+	log.Infow("Router init procedure: start")
 	Router = gin.New()
 	Router.Use(middleware.DefaultStructuredLogger())
 	Router.Use(gin.Recovery())
@@ -21,4 +23,6 @@ func InitRouter() {
 	{
 		apiv1.GET("/convert/pln/:money", converter.ConvertToPLN)
 	}
+	log.Infow("Router init procedure: end")
+	log.Sync()
 }

@@ -19,12 +19,14 @@ const (
 	LOG_PROFILE envFileKey = "LOG_PROFILE"
 	LOG_PATH               = "LOG_PATH"
 	LOG_LEVEL              = "LOG_LEVEL"
+	APP_URL                = "APP_URL"
 )
 
 type appConfig struct {
 	LogLevel   zapcore.Level
 	LogProfile LogProfile
 	LogPath    string
+	AppUrl     string
 }
 
 var AppConfig = getConfiguration()
@@ -35,6 +37,7 @@ func getConfiguration() *appConfig {
 		LogLevel:   getLogLevel(),
 		LogProfile: LogProfile(getEnvOrDefault(LOG_PROFILE, Dev)),
 		LogPath:    getEnvOrDefault(LOG_PATH, "./app.log"),
+		AppUrl:     getEnvOrDefault(APP_URL, "0.0.0.0:8081"),
 	}
 }
 

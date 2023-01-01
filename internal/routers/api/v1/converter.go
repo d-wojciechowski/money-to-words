@@ -33,6 +33,7 @@ func (cc *converterController) ConvertToPLN(c *gin.Context) {
 			Method:  c.Request.Method,
 		})
 		c.Error(errors.New(err.Error()))
+		return
 	}
 	cc.logger.Infow("Correct response", "input", money, "output", result)
 	c.JSON(http.StatusOK, result)
