@@ -13,3 +13,7 @@ test:
 	go test -v ./...
 build:
 	go build  -ldflags '-w -s' -a -installsuffix cgo -o app.exe
+docker-image:
+	docker build -t unlucky/currency-converter .
+docker-run:
+	docker build -t unlucky/currency-converter . && docker run --rm -p 8081:8081 --name currency-converter unlucky/currency-converter

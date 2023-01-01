@@ -1,9 +1,11 @@
 package config
 
 import (
+	"fmt"
 	_ "github.com/joho/godotenv/autoload"
 	"go.uber.org/zap/zapcore"
 	"os"
+	"path/filepath"
 )
 
 type LogProfile string
@@ -33,12 +35,26 @@ var AppConfig = getConfiguration()
 
 func getConfiguration() *appConfig {
 
+	logPath := getEnvOrDefault(LOG_PATH, "./app.log")
+	createFileInPath(logPath)
 	return &appConfig{
 		LogLevel:   getLogLevel(),
 		LogProfile: LogProfile(getEnvOrDefault(LOG_PROFILE, Dev)),
-		LogPath:    getEnvOrDefault(LOG_PATH, "./app.log"),
+		LogPath:    logPath,
 		AppUrl:     getEnvOrDefault(APP_URL, "0.0.0.0:8081"),
 	}
+}
+
+func createFileInPath(path string) {
+	err := os.MkdirAll(filepath.Dir(path), 0770)
+	if err != nil {
+		panic(fmt.Sprintf("Could not create file with given path: %s. Error message %s ", path, err.Error()))
+	}
+	f, err := os.Create(path)
+	if err != nil {
+		panic(fmt.Sprintf("Could not create file with given path: %s. Error message %s ", path, err.Error()))
+	}
+	f.Close()
 }
 
 func getLogLevel() zapcore.Level {
